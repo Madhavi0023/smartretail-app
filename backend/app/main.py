@@ -1,18 +1,15 @@
 from fastapi import FastAPI
 
+from app.api.router import api_router
+from app.core.config import settings
+
 app = FastAPI(
-    title="SmartRetail API",
+    title=settings.APP_NAME,
     version="1.0.0"
 )
 
-@app.get("/")
-def root():
-    return {
-        "message": "SmartRetail API is running"
-    }
+app.include_router(api_router)
 
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
+
+
+
