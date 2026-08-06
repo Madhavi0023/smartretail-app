@@ -1,55 +1,91 @@
+from sqlalchemy.orm import Session
+
+from app.modules.products.model import Product
+from app.modules.products.repository import product_repository
 from app.modules.products.schema import ProductCreate, ProductUpdate
 
 
 class ProductService:
 
-    def create_product(self, product: ProductCreate):
-        return {
-            "id": 1,
-            **product.model_dump()
-        }
+    def create_product(
+        self,
+        db: Session,
+        product: ProductCreate,
+    ) -> Product:
+        print("Service create_product() called")
+        existing_product = product_repository.get_by_sku(
+            db,
+            product.sku,
+        )
 
-    def get_products(self):
-        return []
+        if existing_product:
+            raise ValueError("Product with this SKU already exists.")
 
-    def get_product(self, product_id: int):
-        return {
-            "id": product_id,
-            "sku": "SKU-1001",
-            "name": "Wireless Mouse",
-            "description": "Demo Product",
-            "category": "Electronics",
-            "brand": "Logitech",
-            "purchase_price": 500,
-            "selling_price": 799,
-            "current_stock": 100,
-            "minimum_stock": 10,
-            "unit": "Piece",
-            "barcode": "8901234567890",
-            "status": True,
-        }
+        if product.selling_price < product.purchase_price:
+            raise ValueError(
+                "Selling price cannot be less than purchase price."
+            )
 
-    def update_product(self, product_id: int, product: ProductUpdate):
-        return {
-            "id": product_id,
-            "sku": "SKU-1001",
-            "name": product.name or "Wireless Mouse",
-            "description": product.description,
-            "category": product.category or "Electronics",
-            "brand": product.brand or "Logitech",
-            "purchase_price": product.purchase_price or 500,
-            "selling_price": product.selling_price or 799,
-            "current_stock": product.current_stock or 100,
-            "minimum_stock": product.minimum_stock or 10,
-            "unit": product.unit or "Piece",
-            "barcode": product.barcode,
-            "status": True if product.status is None else product.status,
-        }
+        return product_repository.create(db, product)
 
-    def delete_product(self, product_id: int):
-        return {
-            "message": f"Product {product_id} deleted successfully."
-        }
+    def get_all_products(self, db: Session):
+        return product_repository.get_all(db)
+
+    def get_product_by_id(
+        self,
+        db: Session,
+        product_id: int,
+    ):
+
+        product = product_repository.get_by_id(
+            db,
+            product_id,
+        )
+
+        if not product:
+            raise ValueError("Product not found.")
+
+        return product
+
+    def update_product(
+        self,
+        db: Session,
+        product_id: int,
+        product: ProductUpdate,
+    ):
+
+        db_product = product_repository.get_by_id(
+            db,
+            product_id,
+        )
+
+        if not db_product:
+            raise ValueError("Product not found.")
+
+        return product_repository.update(
+            db,
+            db_product,
+            product,
+        )
+
+    def delete_product(
+        self,
+        db: Session,
+        product_id: int,
+    ):
+
+        db_product = product_repository.get_by_id(
+            db,
+            product_id,
+        )
+
+        if not db_product:
+            raise ValueError("Product not found.")
+
+        product_repository.delete(
+            db,
+            db_product,
+        )
 
 
 product_service = ProductService()
