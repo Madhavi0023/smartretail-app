@@ -2,7 +2,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -22,6 +22,7 @@ class Product(Base):
     purchase_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2),
         nullable=False,
+        
     )
 
     selling_price: Mapped[Decimal] = mapped_column(
@@ -58,3 +59,8 @@ class Product(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
     )
+    stock_transactions = relationship(
+    "StockTransaction",
+    back_populates="product",
+    cascade="all, delete-orphan",
+)
