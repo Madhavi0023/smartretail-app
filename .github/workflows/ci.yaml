@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - feature/backend-init
       - main
 
   pull_request:
