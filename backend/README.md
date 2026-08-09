@@ -4,3 +4,4 @@ alembic revision --autogenerate -m "create stock transactions table"
 alembic upgrade head
 docker exec -it smartretail-postgres psql -U postgres -d smartretail
 \dt
+ecr -login
