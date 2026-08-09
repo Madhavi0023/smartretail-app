@@ -55,3 +55,12 @@ jobs:
           docker build \
             -t smartretail-backend:${{ github.sha }} \
             ./backend
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: smartretail-backend:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
