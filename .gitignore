@@ -18,6 +18,7 @@ build/
 .terraform/
 *.tfstate
 *.tfstate.*
+terraform.tfvars
 crash.log
 
 # VS Code
@@ -28,3 +29,9 @@ crash.log
 
 # Logs
 *.log
+
+# Helm local installation files
+helm-v3.18.4-windows-amd64.zip
+windows-amd64/
+
+*.tgz

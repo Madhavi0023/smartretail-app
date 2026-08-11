@@ -17,6 +17,10 @@ permissions:
   contents: read
 
 jobs:
+  # ============================================================
+  # TEST
+  # ============================================================
+
   test:
     name: Test Application
     runs-on: ubuntu-latest
@@ -44,6 +48,10 @@ jobs:
           SECRET_KEY: test-secret-key
         run: |
           python -m pytest -v
+
+  # ============================================================
+  # BUILD + SECURITY SCAN + ECR PUSH
+  # ============================================================
 
   docker-build:
     name: Build, Scan and Push Docker Image
@@ -89,3 +97,63 @@ jobs:
         run: |
           docker push \
             047619944584.dkr.ecr.ap-south-1.amazonaws.com/smartretail-backend:${{ github.sha }}
+
+  # ============================================================
+  # DEPLOY TO EKS
+  # ============================================================
+
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    # Only deploy after push to main/develop.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::047619944584:role/SmartRetailGitHubActionsECRRole
+          aws-region: ap-south-1
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region ap-south-1 \
+            --name smartretail-app-eks
+
+      - name: Update Kubernetes deployment image
+        run: |
+          sed -i "s|IMAGE_PLACEHOLDER|047619944584.dkr.ecr.ap-south-1.amazonaws.com/smartretail-backend:${{ github.sha }}|g" \
+            k8s/deployment.yaml
+
+      - name: Deploy Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/ingress.yaml
+
+      - name: Check deployment
+        run: |
+          kubectl rollout status \
+            deployment/smartretail-backend \
+            -n smartretail \
+            --timeout=180s
+
+      - name: Check pods
+        run: |
+          kubectl get pods -n smartretail
+
+      - name: Check service
+        run: |
+          kubectl get svc -n smartretail
+
+      - name: Check ingress
+        run: |
+          kubectl get ingress -n smartretail

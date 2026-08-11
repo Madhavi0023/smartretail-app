@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartretail-backend
+  namespace: smartretail
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: smartretail-backend
+
+  template:
+    metadata:
+      labels:
+        app: smartretail-backend
+
+    spec:
+      containers:
+        - name: backend
+
+          image: 047619944584.dkr.ecr.ap-south-1.amazonaws.com/smartretail-backend:46648c32960d1a551d221514faf8a9dd50a33000
+
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: smartretail-db-secret
+                  key: DATABASE_URL
+
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: smartretail-db-secret
+                  key: REDIS_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: smartretail-db-secret
+                  key: SECRET_KEY
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20

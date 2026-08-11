@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "smartretail.fullname" . }}-test-connection"
+  labels:
+    {{- include "smartretail.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args:
+        - "{{ include "smartretail.fullname" . }}:{{ .Values.service.port }}"
+  restartPolicy: Never

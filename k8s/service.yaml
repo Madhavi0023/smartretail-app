@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: smartretail-backend
+  namespace: smartretail
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: smartretail-backend
+
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
