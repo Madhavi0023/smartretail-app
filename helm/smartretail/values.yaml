@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: 047619944584.dkr.ecr.ap-south-1.amazonaws.com/smartretail-backend
   pullPolicy: Always
-  tag: "46648c32960d1a551d221514faf8a9dd50a33000"
+  tag: "d41f102c0d0f6ddb4cf9dd9d303b2b9921eb6632"
 
 imagePullSecrets: []
 
